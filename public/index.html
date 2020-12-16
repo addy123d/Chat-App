@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Websocket Test</title>
+</head>
+
+<body>
+    <h2>Websocket Test</h2>
+    <input type="text" id="text" placeholder="Enter Random Text !" autocomplete="off">
+    <button id="btn">Send 📩</button>
+</body>
+<script>
+    // Take controls of input and button !
+    const text_input = document.getElementById("text");
+    const send_button = document.getElementById("btn");
+
+    // Initiate Connection with Websocket Server !
+    const ws = new WebSocket("wss://socket-serv.herokuapp.com/");
+
+    // Accepting Server response after connecting !
+    ws.onopen = function () {
+        console.log("Connected with server !");
+    };
+
+    // Send Messages to server !
+    send_button.addEventListener("click", function () {
+        console.log("Sent : ", text_input.value);
+
+        const user = {
+            message: text_input.value
+        };
+
+        ws.send(JSON.stringify(user));
+    });
+
+
+    // Recieve messages from server !
+
+    ws.onmessage = function (data) {
+        console.log(data.data);
+    };
+
+
+    // const car = {
+    //     name: "ABC",
+    //     price: 2
+    // }
+
+    // console.log(car.name);
+
+
+
+
+
+
+
+
+</script>
+
+</html>

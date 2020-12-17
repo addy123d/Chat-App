@@ -11,14 +11,19 @@
     <h2>Websocket Test</h2>
     <input type="text" id="text" placeholder="Enter Random Text !" autocomplete="off">
     <button id="btn">Send 📩</button>
+
+    <!-- Messages from server -->
+    <div id="output"></div>
 </body>
 <script>
     // Take controls of input and button !
     const text_input = document.getElementById("text");
     const send_button = document.getElementById("btn");
+    const output_container = document.getElementById("output");
+    const name = prompt("Enter your name !");
 
     // Initiate Connection with Websocket Server !
-    const ws = new WebSocket("wss://socket-serv.herokuapp.com/");
+    const ws = new WebSocket("ws://127.0.0.1:5500/");
 
     // Accepting Server response after connecting !
     ws.onopen = function () {
@@ -30,10 +35,13 @@
         console.log("Sent : ", text_input.value);
 
         const user = {
+            client_name: name,
             message: text_input.value
         };
 
         ws.send(JSON.stringify(user));
+
+        text_input.value = "";
     });
 
 
@@ -41,6 +49,9 @@
 
     ws.onmessage = function (data) {
         console.log(data.data);
+        const parsed_data = JSON.parse(data.data);
+
+        output_container.innerHTML += `<p>${parsed_data.name} : ${parsed_data.data}</p>`;
     };
 
 

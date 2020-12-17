@@ -3,6 +3,7 @@
 // In javascript (JS) - require("")
 // Variable types - let, const
 const express = require("express");
+const WebSocket = require("ws");
 const ip = '127.0.0.1';
 const port = 5500;
 
@@ -39,6 +40,35 @@ app.post("/registerDetails",function(request,response){
 
 
 // Listen
-app.listen(port,ip,function(){
+const http_server = app.listen(port,ip,function(){
     console.log("Server is running....");
 });
+
+const wss = new WebSocket.Server({ server : http_server});
+
+wss.on("connection",function(client){
+
+    // Collect messages from client !
+    client.on("message",function(data){
+
+        // Convert string data to original object form !
+        const parsed_data = JSON.parse(data);
+        console.log("Parsed Data : ",parsed_data);
+
+        // Send this recieved message to client again !
+        const server_data = {
+            data : parsed_data.message,
+            name : parsed_data.client_name
+        };
+
+        // Broadcast message to each client !
+        wss.clients.forEach(function(ws){
+            ws.send(JSON.stringify(server_data));
+        });
+
+     
+    });
+
+    console.log("Connected with client !");
+});
+

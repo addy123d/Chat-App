@@ -15,6 +15,9 @@
     <!-- Messages from server -->
     <div id="output"></div>
 </body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js"
+    integrity="sha512-aMGMvNYu8Ue4G+fHa359jcPb1u+ytAF+P2SCb+PxrjCdO3n3ZTxJ30zuH39rimUggmTwmh2u7wvQsDTHESnmfQ=="
+    crossorigin="anonymous"></script>
 <script>
     // Take controls of input and button !
     const text_input = document.getElementById("text");
@@ -22,37 +25,37 @@
     const output_container = document.getElementById("output");
     const name = prompt("Enter your name !");
 
-    // Initiate Connection with Websocket Server !
-    const ws = new WebSocket("ws://127.0.0.1:5500/");
+    // // Initiate Connection with Websocket Server !
+    // const ws = new WebSocket("ws://127.0.0.1:5500/");
 
-    // Accepting Server response after connecting !
-    ws.onopen = function () {
-        console.log("Connected with server !");
-    };
+    // // Accepting Server response after connecting !
+    // ws.onopen = function () {
+    //     console.log("Connected with server !");
+    // };
 
-    // Send Messages to server !
-    send_button.addEventListener("click", function () {
-        console.log("Sent : ", text_input.value);
+    // // Send Messages to server !
+    // send_button.addEventListener("click", function () {
+    //     console.log("Sent : ", text_input.value);
 
-        const user = {
-            client_name: name,
-            message: text_input.value
-        };
+    //     const user = {
+    //         client_name: name,
+    //         message: text_input.value
+    //     };
 
-        ws.send(JSON.stringify(user));
+    //     ws.send(JSON.stringify(user));
 
-        text_input.value = "";
-    });
+    //     text_input.value = "";
+    // });
 
 
-    // Recieve messages from server !
+    // // Recieve messages from server !
 
-    ws.onmessage = function (data) {
-        console.log(data.data);
-        const parsed_data = JSON.parse(data.data);
+    // ws.onmessage = function (data) {
+    //     console.log(data.data);
+    //     const parsed_data = JSON.parse(data.data);
 
-        output_container.innerHTML += `<p>${parsed_data.name} : ${parsed_data.data}</p>`;
-    };
+    //     output_container.innerHTML += `<p>${parsed_data.name} : ${parsed_data.data}</p>`;
+    // };
 
 
     // const car = {
@@ -63,7 +66,38 @@
     // console.log(car.name);
 
 
+    // Initiate Connection with Websocket Server !
+    const ws = io();
 
+    // Accepting Server response after connecting !
+    ws.on("onconnect", function (data) {
+        console.log(data);
+    });
+
+
+    // Send Messages to server !
+    send_button.addEventListener("click", function () {
+        console.log("Sent : ", text_input.value);
+        output_container.innerHTML += `<p>${name} : ${text_input.value}</p>`;
+
+        const user = {
+            client_name: name,
+            message: text_input.value
+        };
+
+        ws.emit("input_message", JSON.stringify(user));
+
+        text_input.value = "";
+    });
+
+    // Recieve messages from server !
+
+    ws.on("server_message", function (data) {
+        console.log(data);
+        const parsed_data = JSON.parse(data);
+
+        output_container.innerHTML += `<p>${parsed_data.name} : ${parsed_data.data}</p>`;
+    });
 
 
 

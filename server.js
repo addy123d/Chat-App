@@ -4,6 +4,7 @@
 // Variable types - let, const
 const express = require("express");
 const WebSocket = require("ws");
+const socket = require("socket.io");
 const ip = '127.0.0.1';
 const port = 5500;
 
@@ -44,12 +45,18 @@ const http_server = app.listen(port,ip,function(){
     console.log("Server is running....");
 });
 
-const wss = new WebSocket.Server({ server : http_server});
+const wss = socket(http_server)
 
 wss.on("connection",function(client){
 
+    // On connection with client !
+    client.emit("onconnect",JSON.stringify({
+        message : "Connected !"
+    }));
+
     // Collect messages from client !
-    client.on("message",function(data){
+    client.on("input_message",function(data){
+        console.log(data);
 
         // Convert string data to original object form !
         const parsed_data = JSON.parse(data);
@@ -61,14 +68,40 @@ wss.on("connection",function(client){
             name : parsed_data.client_name
         };
 
-        // Broadcast message to each client !
-        wss.clients.forEach(function(ws){
-            ws.send(JSON.stringify(server_data));
-        });
-
-     
+        // Broadcast to all the clients !
+        client.broadcast.emit("server_message",JSON.stringify(server_data));
     });
 
     console.log("Connected with client !");
 });
+
+
+
+// const wss = new WebSocket.Server({ server : http_server});
+
+// wss.on("connection",function(client){
+
+//     // Collect messages from client !
+//     client.on("message",function(data){
+
+//         // Convert string data to original object form !
+//         const parsed_data = JSON.parse(data);
+//         console.log("Parsed Data : ",parsed_data);
+
+//         // Send this recieved message to client again !
+//         const server_data = {
+//             data : parsed_data.message,
+//             name : parsed_data.client_name
+//         };
+
+//         // Broadcast message to each client !
+//         wss.clients.forEach(function(ws){
+//             ws.send(JSON.stringify(server_data));
+//         });
+
+     
+//     });
+
+//     console.log("Connected with client !");
+// });
 

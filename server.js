@@ -5,6 +5,7 @@
 const express = require("express");
 const WebSocket = require("ws");
 const socket = require("socket.io");
+const ejs = require("ejs");
 const ip = '127.0.0.1';
 const port = 5500;
 
@@ -14,33 +15,82 @@ let app = express();
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 
+app.set("view engine","ejs");
 
-app.use("/",express.static(__dirname+"/public"));
 
 // Handle get request to /
-app.get("/home",function(request,response){
-    response.send("Welcome to my home page !");
+app.get("/",function(request,response){
+    response.render("room");
+});
+
+app.get("/chat",function(request,response){
+    response.render("chat");
 });
 
 // Register Page !
-app.get("/register",function(request,response){
-    response.send(`<form action="/registerDetails" method="POST">
-                    <input type="text" name="name" placeholder="Enter your name" autocomplete="off">
-                    <input type="email" name="email" placeholder="Enter Email" autocomplete="off">
-                    <input type="password" name="password" placeholder="Choose Password" autocomplete="off">
-                    <button>Submit</button>
-                    </form>`);
-});
+// app.get("/register",function(request,response){
+//     response.send(`<form action="/registerDetails" method="POST">
+//                     <input type="text" name="name" placeholder="Enter your name" autocomplete="off">
+//                     <input type="email" name="email" placeholder="Enter Email" autocomplete="off">
+//                     <input type="password" name="password" placeholder="Choose Password" autocomplete="off">
+//                     <button>Submit</button>
+//                     </form>`);
+// });
 
-// Collect user details !
-app.post("/registerDetails",function(request,response){
-    console.log(request.body);
+// // Collect user details !
+// app.post("/registerDetails",function(request,response){
+//     console.log(request.body);
 
-    response.send("Data came !");
-});
+//     response.send("Data came !");
+// });
 
 
 // Listen
+// Functions
+// To add room
+
+function addRoom(id,group_title,name,client_id){
+    const room = {
+        id : id,
+        group_title: group_title,
+        names : [{
+            id : client_id,
+            name : name,
+            status : "Admin"
+        }]
+    };
+
+    rooms.push(room);
+
+    console.log("Rooms array : ",rooms);
+
+    return room;
+}
+
+// To add participants
+
+function addParticipant(id,name,client_id){
+    const getIndex = rooms.findIndex((room)=>room.id === id);
+
+    const user = {
+        id : client_id,
+        name : name,
+        status : "Participant"
+    };
+
+    rooms[getIndex].names.push(user);
+
+    console.log("Rooms Array : ",rooms[getIndex]);
+    console.log("Names Array : ",rooms[getIndex].names);
+    console.log("User Added !");
+
+    return rooms[getIndex];
+}
+
+
+
+const rooms = [];
+
 const http_server = app.listen(port,ip,function(){
     console.log("Server is running....");
 });
@@ -53,6 +103,43 @@ wss.on("connection",function(client){
     client.emit("onconnect",JSON.stringify({
         message : "Connected !"
     }));
+
+    // Collect entry data
+    client.on("entry_data",function(data){
+        console.log(data);
+
+        // Parse the string data !
+        const parsed_data = JSON.parse(data);
+
+        const {id, name, group_title} = parsed_data;
+
+        // Check if room exists or not !
+       const getIndex = rooms.findIndex((room)=>room.id === id);
+
+       if(getIndex < 0){
+
+            const room = addRoom(id,group_title,name,client.id);
+
+            client.join(room.id);
+            
+       }else{
+            const room  = addParticipant(id,name,client.id);
+            console.log("Room : ",room);
+            client.join(room.id);
+
+            // Entry message object !
+            const message = {
+                text : `${name} has entered the chat !`,
+                time : new Date().toLocaleTimeString()
+            }
+
+            // Send entry message to other users !
+            client.to(room.id).broadcast.emit("server_msg",JSON.stringify(message));
+       };
+
+     
+
+    });
 
     // Collect messages from client !
     client.on("input_message",function(data){

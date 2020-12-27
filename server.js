@@ -101,6 +101,7 @@ wss.on("connection",function(client){
 
     // On connection with client !
     client.emit("onconnect",JSON.stringify({
+        type : "connection",
         message : "Connected !"
     }));
 
@@ -129,6 +130,7 @@ wss.on("connection",function(client){
 
             // Entry message object !
             const message = {
+                type : "enter",
                 text : `${name} has entered the chat !`,
                 time : new Date().toLocaleTimeString()
             }
@@ -157,6 +159,27 @@ wss.on("connection",function(client){
 
         // Broadcast to all the clients !
         client.broadcast.emit("server_message",JSON.stringify(server_data));
+    });
+
+    // Collect Exit messages from client !
+
+    client.on("exit",function(data){
+        console.log(data);
+
+        // Parsing    string -> object
+        const parsed_data = JSON.parse(data);
+
+        const {id, name} = parsed_data;
+
+        // Send exit message to other clients !
+
+        const exit = {
+            type : "left",
+            message : `${name} has left the chat !`,
+            time : new Date().toLocaleTimeString()
+        }
+
+        client.to(id).broadcast.emit("exit_message",JSON.stringify(exit));
     });
 
     console.log("Connected with client !");

@@ -81,6 +81,21 @@
     // console.log(car.name);
 
 
+    // Parse + Display !
+    function parsing(data) {
+        const parsed_data = JSON.parse(data);
+
+        if (parsed_data.type === "enter") {
+            output_container.innerHTML += `<h1>${parsed_data.text} : ${parsed_data.time}</h1>`;
+        }
+
+
+        if (parsed_data.type === "exit") {
+            output_container.innerHTML += `<h1>${parsed_data.text} : ${parsed_data.time}</h1>`;
+        }
+    }
+
+
     // Initiate Connection with Websocket Server !
     const ws = io();
 
@@ -116,7 +131,7 @@
 
     ws.on("server_message", function (data) {
         console.log(data);
-        const parsed_data = JSON.parse(data);
+        const parsed_data = parsing(data);
 
         output_container.innerHTML += `<p>${parsed_data.name} : ${parsed_data.data}</p>`;
     });
@@ -125,7 +140,33 @@
     // Collect entry_message !
     ws.on("server_msg", function (data) {
         console.log(data);
+
+        parsing(data);
     });
+
+    // On exit emit exit message to server !
+
+    window.onbeforeunload = function () {
+        const exitMsg = {
+            id: id,
+            name: name
+        };
+
+        ws.emit("exit", JSON.stringify(exitMsg));
+
+        return "Are you sure you want to exit ?"
+    }
+
+    // Exit message coming from server !
+    ws.on("exit_message", function (data) {
+        console.log(data);
+
+        parsing(data);
+
+        // const parsed_data = JSON.parse(data);
+
+        // output_container.innerHTML += `<h1>${parsed_data.message} : ${parsed_data.time}</h1>`;
+    })
 
 
 

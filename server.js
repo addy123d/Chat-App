@@ -88,6 +88,28 @@ function addParticipant(id,name,client_id){
 }
 
 
+// Delete User !
+
+function deleteUser(group_id,client_id){
+
+    // Search your room !
+    const getIndex = rooms.findIndex((user)=>user.id === group_id);
+
+    const userIndex = rooms[getIndex].names.findIndex((user)=> user.id === client_id);
+
+    if(userIndex != -1){
+
+        // Delete user from names array with the help of splice method !
+        rooms[getIndex].names.splice(userIndex,1);
+
+        console.log("Room : ",rooms[getIndex].names);
+        return true;
+    }
+
+
+}
+
+
 
 const rooms = [];
 
@@ -153,12 +175,23 @@ wss.on("connection",function(client){
 
         // Send this recieved message to client again !
         const server_data = {
+            type : "server",
             data : parsed_data.message,
-            name : parsed_data.client_name
+            name : parsed_data.client_name,
+            time : new Date().toLocaleTimeString()
         };
 
         // Broadcast to all the clients !
-        client.broadcast.emit("server_message",JSON.stringify(server_data));
+        client.to(parsed_data.id).broadcast.emit("server_message",JSON.stringify(server_data));
+    });
+
+    // Collect typing requests from client !
+    client.on("client_typing",function(data){
+        
+        // Convert string data to original object form !
+        const parsed_data = JSON.parse(data);
+
+        client.to(parsed_data.id).broadcast.emit("server_typing",JSON.stringify(parsed_data));
     });
 
     // Collect Exit messages from client !
@@ -180,6 +213,9 @@ wss.on("connection",function(client){
         }
 
         client.to(id).broadcast.emit("exit_message",JSON.stringify(exit));
+
+        // Call deleteUser Function to delete user from the array !
+        deleteUser(id,client.id);
     });
 
     console.log("Connected with client !");

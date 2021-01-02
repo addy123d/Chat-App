@@ -13,7 +13,11 @@
     <button id="btn">Send 📩</button>
 
     <!-- Messages from server -->
-    <div id="output"></div>
+    <div id="output">
+    </div>
+
+
+    <div id="typing"></div>
 </body>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js"
     integrity="sha512-aMGMvNYu8Ue4G+fHa359jcPb1u+ytAF+P2SCb+PxrjCdO3n3ZTxJ30zuH39rimUggmTwmh2u7wvQsDTHESnmfQ=="
@@ -38,6 +42,7 @@
     const text_input = document.getElementById("text");
     const send_button = document.getElementById("btn");
     const output_container = document.getElementById("output");
+    const typing_box = document.getElementById("typing");
     const name = prompt("Enter your name !");
 
     // // Initiate Connection with Websocket Server !
@@ -85,13 +90,24 @@
     function parsing(data) {
         const parsed_data = JSON.parse(data);
 
+        console.log(parsed_data);
+
         if (parsed_data.type === "enter") {
             output_container.innerHTML += `<h1>${parsed_data.text} : ${parsed_data.time}</h1>`;
         }
 
 
-        if (parsed_data.type === "exit") {
-            output_container.innerHTML += `<h1>${parsed_data.text} : ${parsed_data.time}</h1>`;
+        if (parsed_data.type === "left") {
+            output_container.innerHTML += `<h1>${parsed_data.message} : ${parsed_data.time}</h1>`;
+        }
+
+        if (parsed_data.type === "server") {
+            typing_box.innerHTML = "";
+            output_container.innerHTML += `<p><strong>${parsed_data.name}</strong> : ${parsed_data.data} : ${parsed_data.time}</p>`
+        }
+
+        if (parsed_data.type === "typing") {
+            typing_box.innerHTML = `<p><strong>${parsed_data.name}</strong> : <em>Typing....</em></p>`
         }
     }
 
@@ -115,9 +131,10 @@
     // Send Messages to server !
     send_button.addEventListener("click", function () {
         console.log("Sent : ", text_input.value);
-        output_container.innerHTML += `<p>${name} : ${text_input.value}</p>`;
+        output_container.innerHTML += `<p><strong>${name}</strong> : ${text_input.value}</p>`;
 
         const user = {
+            id: id,
             client_name: name,
             message: text_input.value
         };
@@ -133,7 +150,7 @@
         console.log(data);
         const parsed_data = parsing(data);
 
-        output_container.innerHTML += `<p>${parsed_data.name} : ${parsed_data.data}</p>`;
+        // output_container.innerHTML += `<p>${parsed_data.name} : ${parsed_data.data}</p>`;
     });
 
 
@@ -169,6 +186,28 @@
     })
 
 
+    // Collect typing event !
+    text_input.addEventListener("input", typing);
+
+    function typing() {
+        console.log("Typing...");
+
+        // Send dummy data to server !
+
+        const dummy = {
+            type: "typing",
+            id: id,
+            name: name,
+            "text": "typing.."
+        };
+
+        ws.emit("client_typing", JSON.stringify(dummy));
+    }
+
+    // Collect server typing requests !
+    ws.on("server_typing", function (data) {
+        parsing(data);
+    });
 
 
 

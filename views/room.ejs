@@ -4,16 +4,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Room</title>
+
+    <!-- Link CSS -->
+    <link rel="stylesheet" type="text/css" href="/css/room.css">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@500&family=Poppins&family=Montserrat&family=Quicksand&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
+        integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+    <title>Room</title>
 </head>
 
 <body>
-    <h2>Create Room</h2>
-    <form action="/chat" method="GET">
-        <input type="text" id="title" name="group_title" placeholder="Group Title" autocomplete="off">
-        <input type="text" id="group_id" name="group_id" readonly>
-        <button>Create Room</button>
-    </form>
+    <div class="registerPage">
+        <form action="/chat" method="GET">
+            <div class="container">
+                <div class="form">
+                    <h2>Create Room <i class="fa fa-plus" aria-hidden="true"></i></h2>
+                    <div class="email">
+                        <input type="text" id="title" name="group_title" placeholder="Room Name" autocomplete="off">
+                    </div>
+                    <div class="password">
+                        <input type="text" id="group_id" name="group_id" readonly>
+                    </div>
+
+                    <div class="btn">
+                        <button>Create</button>
+                    </div>
+
+                </div>
+            </div>
+        </form>
+    </div>
 </body>
 <script>
     const group_id = document.getElementById("group_id");

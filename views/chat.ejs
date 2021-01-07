@@ -2,22 +2,55 @@
 <html lang="en">
 
 <head>
+    <base href="/">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/chat.css">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat+Alternates:wght@500&family=Poppins&family=Montserrat&family=Josefin+Sans:wght@300&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
+        integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+
     <title>Chat</title>
 </head>
 
 <body>
-    <h2>Group Title</h2>
-    <input type="text" id="text" placeholder="Enter Random Text !" autocomplete="off">
-    <button id="btn">Send 📩</button>
+    <div class="title">
+        <h2><span>Messenger</span> Application <i class="fa fa-comments" aria-hidden="true"></i></h2>
+    </div>
 
-    <!-- Messages from server -->
-    <div id="output">
+    <div class="group_title">
+    </div>
+
+    <!-- Group Members -->
+    <!-- <div class="members">
+        <div class="show">Participants</div>
+        <ul id="list"> -->
+    <!-- List will be dependent on javascript ! -->
+    <!-- <li>Aditya <i class="fa fa-circle" aria-hidden="true"></i></li>
+            <li>Joe <i class="fa fa-circle" aria-hidden="true"></i></li>
+            <li>John <i class="fa fa-circle" aria-hidden="true"></i></li>
+            <li>Doe <i class="fa fa-circle" aria-hidden="true"></i></li> -->
+    <!-- </ul>
+    </div> -->
+
+    <div class="chat_container">
+        <div class="cont">
+            <!-- Messages will be appeared with the help of javascript ! -->
+        </div>
     </div>
 
 
-    <div id="typing"></div>
+    <div class="input_cont">
+        <input type="text" id="text" placeholder="Type a message..." autocomplete="off">
+        <button id="send_button">Send</button>
+    </div>
+
+    <div class="typing">
+    </div>
+
 </body>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js"
     integrity="sha512-aMGMvNYu8Ue4G+fHa359jcPb1u+ytAF+P2SCb+PxrjCdO3n3ZTxJ30zuH39rimUggmTwmh2u7wvQsDTHESnmfQ=="
@@ -40,10 +73,14 @@
 
     // Take controls of input and button !
     const text_input = document.getElementById("text");
-    const send_button = document.getElementById("btn");
+    const send_button = document.getElementById("send_button");
     const output_container = document.getElementById("output");
-    const typing_box = document.getElementById("typing");
+    const typing_box = document.querySelector(".typing");
     const name = prompt("Enter your name !");
+
+
+    // Message Container
+    const message_box = document.querySelector(".cont");
 
     // // Initiate Connection with Websocket Server !
     // const ws = new WebSocket("ws://127.0.0.1:5500/");
@@ -93,21 +130,38 @@
         console.log(parsed_data);
 
         if (parsed_data.type === "enter") {
-            output_container.innerHTML += `<h1>${parsed_data.text} : ${parsed_data.time}</h1>`;
+            const div = document.createElement("div");
+            div.classList.add("alert");
+            div.innerHTML = `<h1>${parsed_data.text} : ${parsed_data.time}</h1>`;
+            message_box.appendChild(div);
+            // output_container.innerHTML += `<h1>${parsed_data.text} : ${parsed_data.time}</h1>`;
         }
 
 
         if (parsed_data.type === "left") {
-            output_container.innerHTML += `<h1>${parsed_data.message} : ${parsed_data.time}</h1>`;
+            const div = document.createElement("div");
+            div.classList.add("alert");
+            div.innerHTML = `<h1>${parsed_data.message} : ${parsed_data.time}</h1>`;
+            message_box.appendChild(div);
+            // output_container.innerHTML += `<h1>${parsed_data.message} : ${parsed_data.time}</h1>`;
         }
 
         if (parsed_data.type === "server") {
+            const div = document.createElement("div");
+            div.classList.add("output");
+            div.innerHTML = `<div class="message">
+                            <p id="text"><strong>${parsed_data.name}</strong> : ${parsed_data.data}</p>
+                            <p id="time"><em>${parsed_data.time}</em></p>
+                         </div>`;
+            message_box.appendChild(div);
+
             typing_box.innerHTML = "";
-            output_container.innerHTML += `<p><strong>${parsed_data.name}</strong> : ${parsed_data.data} : ${parsed_data.time}</p>`
+            // output_container.innerHTML += `<p><strong>${parsed_data.name}</strong> : ${parsed_data.data} : ${parsed_data.time}</p>`
         }
 
         if (parsed_data.type === "typing") {
-            typing_box.innerHTML = `<p><strong>${parsed_data.name}</strong> : <em>Typing....</em></p>`
+            typing_box.innerHTML = `<p><strong>${parsed_data.name}</strong> is typing...</p>`;
+            // typing_box.innerHTML = `<p><strong>${parsed_data.name}</strong> : <em>Typing....</em></p>`
         }
     }
 
@@ -131,7 +185,15 @@
     // Send Messages to server !
     send_button.addEventListener("click", function () {
         console.log("Sent : ", text_input.value);
-        output_container.innerHTML += `<p><strong>${name}</strong> : ${text_input.value}</p>`;
+        // output_container.innerHTML += `<p><strong>${name}</strong> : ${text_input.value}</p>`;
+        const div = document.createElement("div");
+        div.classList.add("input");
+
+        div.innerHTML = `<div class="message">
+                            <p id="text"><strong>YOU</strong> : ${text_input.value}</p>
+                            <p id="time"><em>${new Date().toLocaleTimeString()}</em></p>
+                        </div>`;
+        message_box.appendChild(div);
 
         const user = {
             id: id,
